@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link rel="apple-touch-icon" href="ios.png" />
+<meta name="apple-mobile-web-app-title" content="チケプラ電子チケット" />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;600&display=swap" rel="stylesheet"/>
+<meta name="robots" content="noindex, nofollow">
+
+  <title>My App</title>
+
+<style>
+/* タップ時のハイライトを消す */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ボタン押下時の色変化をなくす */
+button {
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+button:focus,
+button:active {
+  outline: none;
+}
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    background: #fff;
+  }
+
+  #app {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    background: #fff;
+  }
+
+  .page {
+    width: 100%;
+    height: 100%;
+    display: none;
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    z-index: 0;
+  }
+
+  .page.active {
+    display: block;
+    z-index: 2;
+  }
+
+    @keyframes slideInFromRight {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  .slide-in {
+    animation: slideInFromRight 0.35s ease;
+  }
+
+  /* TOP画像 */
+  .full-image {
+    width: 100%;
+    height: auto;
+    margin-top: 0px;
+    display: block;
+  }
+
+    .video-wrapper {
+    position: absolute;
+    top: 0px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    background: #fff;
+    z-index: 0;
+  }
+
+  .video-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+    display: block;
+    z-index: 0;
+  }
+
+  /* 透明タップエリア共通 */
+  .area-button {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    z-index: 2;
+  }
+
+  /* プロフィール1 */
+  .profile-btn-1 {
+    top: 42%;
+    height: 15%;
+    background: rgba(144, 105, 105, 0);
+  }
+
+  /* プロフィール2 */
+  .profile-btn-2 {
+    top: 60%;
+    height: 15%;
+    background: rgba(8, 2, 2, 0);
+  }
+
+  /* TOP戻るボタン */
+  .back-button {
+    position: absolute;
+    top: 20px;
+    left: 5px;
+    height:120px;
+    width: 120px;
+    z-index: 3;
+    background: rgba(214, 0, 0, 0);
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  /* マイページボタン（右下） */
+.mypage-button {
+  position: absolute;
+  right: 20px;
+  bottom: 30px;
+  width: 80px;
+  height: 180px;
+  border: none;
+  background: rgba(209, 21, 21, 0);
+  cursor: pointer;
+  z-index: 3;
+}
+
+/* マイページTOPへ戻るボタン */
+.home-button {
+  position: absolute;
+  right: 170px;
+  bottom: 30px;
+  width: 80px;
+  height: 150px;
+  border: none;
+  background: rgba(224, 45, 45, 0);
+  cursor: pointer;
+  z-index: 3;
+}
+
+/* P2の要素 */
+.stamp {
+  opacity: 0;   
+  position: absolute;
+  top: 17%;
+  left: 62%;
+  width: 29.5%;
+  transform-origin: center center;
+}
+
+  </style>
+</head>
+
+<body>
+  <div id="app">
+
+<!-- ID Input -->
+<section id="idinput" class="page active">
+
+    <div class="id-input-container">
+        <input type="text" id="userId" class="id-input" autocomplete="off">
+    <div class="stamp-select">
+      <label><input type="radio" name="stampType" value="1" checked>青</label>
+      <label><input type="radio" name="stampType" value="2">オレンジ</label>
+    </div>
+
+    <button class="id-submit-button" onclick="submitId()">OK</button>
+
+    </div>
+
+</section>
+
+<!-- TOP -->
+<section id="top" class="page">
+  <img src="top.png" alt="TOP" class="full-image" />
+
+  <!-- プロフィール1 -->
+  <button
+    class="area-button profile-btn-1"
+    onclick="navigate('profile1')"
+  ></button>
+
+  <!-- プロフィール2 -->
+  <button
+    class="area-button profile-btn-2"
+    onclick="navigate('profile2')"
+  ></button>
+
+  <button class="mypage-button" onclick="navigate('mypage')"></button>
+</section>
+
+    <!-- Profile 1 -->
+    <section id="profile1" class="page">
+  <div class="video-wrapper">
+    <video id="profileVideo1" class="video-bg" autoplay muted loop playsinline>
+      <source id="profileVideoSource1" src="" type="video/mp4" />
+    </video>
+  </div>
+      <img src="" class="stamp stamp-image" />
+      <button class="back-button" onclick="navigate('top')"></button>
+      <button class="mypage-button" onclick="navigate('mypage')"></button>
+    </section>
+
+    <!-- Profile 2 -->
+    <section id="profile2" class="page">
+  <div class="video-wrapper">
+    <video id="profileVideo2" class="video-bg" autoplay muted loop playsinline>
+      <source id="profileVideoSource2" src="" type="video/mp4" />
+    </video>
+  </div>
+      <img src="" class="stamp stamp-image" />
+      <button class="back-button" onclick="navigate('top')"></button>
+      <button class="mypage-button" onclick="navigate('mypage')"></button>
+    </section>
+
+    <!-- My Page -->
+<section id="mypage" class="page">
+  <img id="mypageImage" src="" alt="My Page" class="full-image" />
+
+  <button class="home-button" onclick="navigate('top')">
+  </button>
+</section>
+
+  </div>
+
+<script>
+function submitId(){
+
+    const id = document.getElementById("userId").value.trim();
+
+    if(id === ""){
+        alert("IDを入力してください");
+        return;
+    }
+
+    // 選択されたスタンプ
+    const stampType =
+        document.querySelector('input[name="stampType"]:checked').value;
+
+    // URLパラメータを作成
+    const url = new URL(window.location.href);
+
+    url.searchParams.set("id", id);
+    url.searchParams.set("stamp", stampType);
+
+    // URLを変更
+    window.history.pushState({}, "", url);
+
+    // TOPへ移動
+    navigate("top");
+
+    // コンテンツ読み込み
+    loadContentById();
+}
+
+function loadContentById() {
+
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    const stampType = params.get("stamp");
+
+    if (!id) {
+        return;
+    }
+
+    // Profile 1
+    const video1 = document.getElementById("profileVideo1");
+    const source1 = document.getElementById("profileVideoSource1");
+
+    source1.src = `${id}_1.mp4`;
+    video1.load();
+
+    // Profile 2
+    const video2 = document.getElementById("profileVideo2");
+    const source2 = document.getElementById("profileVideoSource2");
+
+    source2.src = `${id}_2.mp4`;
+    video2.load();
+
+    // My Page
+    document.getElementById("mypageImage").src =
+        `${id}.png`;
+
+    // スタンプ
+    document.querySelectorAll(".stamp-image").forEach(stamp => {
+        stamp.src = `stamp${stampType}.png`;
+});
+}
+loadContentById();
+
+  function navigate(pageId) {
+    const pages = document.querySelectorAll(".page");
+    const nextPage = document.getElementById(pageId);
+
+    pages.forEach(page => {
+      page.classList.remove("active", "slide-in");
+    });
+
+    nextPage.classList.add("active");
+
+    // TOPからプロフィール遷移時のみスライド
+    if (pageId !== "top") {
+      nextPage.classList.add("slide-in");
+    }
+  }
+
+    function setAppHeight() {
+    document.documentElement.style.setProperty(
+      "--app-height",
+      `${window.innerHeight}px`
+    );
+  }
+
+// スタンプアニメーション
+document.querySelectorAll('#profile1, #profile2').forEach(page => {
+
+  const stamp = page.querySelector('.stamp');
+
+  page.addEventListener('click', () => {
+
+    // 拡大は一瞬
+    stamp.style.opacity = "1";
+    stamp.style.transition = 'none';
+    stamp.style.transform = 'scale(3)';
+
+    // 次のフレームで縮小アニメーション
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        stamp.style.transition = 'transform 0.5s ease';
+        stamp.style.transform = 'scale(1)';
+
+                // 縮小が終わってから消す
+        setTimeout(() => {
+          stamp.style.transition = "opacity 0s ease";
+          stamp.style.opacity = "0";
+        }, 300); // transformの時間と合わせる
+      });
+    });
+
+  });
+
+});
+
+  window.addEventListener("load", setAppHeight);
+  window.addEventListener("resize", setAppHeight);
+  window.addEventListener("orientationchange", setAppHeight);
+</script>
+</body>
+</html>
