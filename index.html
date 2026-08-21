@@ -157,7 +157,7 @@ button:active {
   right: 20px;
   bottom: 30px;
   width: 80px;
-  height: 180px;
+  height: 120px;
   border: none;
   background: rgba(209, 21, 21, 0);
   cursor: pointer;
@@ -198,13 +198,7 @@ button:active {
 
     <div class="id-input-container">
         <input type="text" id="userId" class="id-input" autocomplete="off">
-    <div class="stamp-select">
-      <label><input type="radio" name="stampType" value="1" checked>青</label>
-      <label><input type="radio" name="stampType" value="2">オレンジ</label>
-    </div>
-
     <button class="id-submit-button" onclick="submitId()">OK</button>
-
     </div>
 
 </section>
@@ -272,15 +266,9 @@ function submitId(){
         return;
     }
 
-    // 選択されたスタンプ
-    const stampType =
-        document.querySelector('input[name="stampType"]:checked').value;
-
     // URLパラメータを作成
     const url = new URL(window.location.href);
-
     url.searchParams.set("id", id);
-    url.searchParams.set("stamp", stampType);
 
     // URLを変更
     window.history.pushState({}, "", url);
@@ -296,7 +284,6 @@ function loadContentById() {
 
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
-    const stampType = params.get("stamp");
 
     if (!id) {
         return;
@@ -320,11 +307,11 @@ function loadContentById() {
     document.getElementById("mypageImage").src =
         `${id}.png`;
 
-    // スタンプ
     document.querySelectorAll(".stamp-image").forEach(stamp => {
-        stamp.src = `stamp${stampType}.png`;
+    stamp.src = "blue.png";
 });
 }
+
 loadContentById();
 
   function navigate(pageId) {
@@ -355,7 +342,12 @@ document.querySelectorAll('#profile1, #profile2').forEach(page => {
 
   const stamp = page.querySelector('.stamp');
 
-  page.addEventListener('click', () => {
+  page.addEventListener('click', (event) => {
+
+  // 画面の左半分だけ反応
+  if (event.clientX < window.innerWidth / 2) {
+      return;
+  }
 
     // 拡大は一瞬
     stamp.style.opacity = "1";
