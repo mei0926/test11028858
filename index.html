@@ -257,28 +257,74 @@ button:active {
   </div>
 
 <script>
-function submitId(){
 
-    const id = document.getElementById("userId").value.trim();
+async function submitId() {
 
-    if(id === ""){
-        alert("IDを入力してください");
-        return;
-    }
+  const id = document.getElementById("userId").value.trim();
 
-    // URLパラメータを作成
-    const url = new URL(window.location.href);
-    url.searchParams.set("id", id);
+  if (id === "") {
+    alert("IDを入力してください");
+    return;
+  }
 
-    // URLを変更
-    window.history.pushState({}, "", url);
+  const url = new URL(window.location.href);
+  url.searchParams.set("id", id);
 
-    // TOPへ移動
-    navigate("top");
+  window.history.pushState({}, "", url);
 
-    // コンテンツ読み込み
-    loadContentById();
+  // IDを保存
+  sessionStorage.setItem("savedId", id);
+  sessionStorage.setItem("savedPage", "top");
+
+  navigate("top");
+  loadContentById();
+
+  // IDごとの画像・動画を保存
+  await cacheUserContent(id);
 }
+
+
+
+async function cacheUserContent(id) {
+
+  if (!("caches" in window)) return;
+
+  const cache = await caches.open("my-app-offline-v2");
+
+  const files = [
+    `${id}.png`,
+    `${id}_1.mp4`,
+    `${id}_2.mp4`,
+    "top.png",
+    "blue.png"
+  ];
+
+  const results = await Promise.allSettled(
+    files.map(async file => {
+      const response = await fetch(file, {
+        cache: "reload"
+      });
+
+      if (!response.ok || response.status !== 200) {
+        throw new Error(`取得失敗: ${file}`);
+      }
+
+      await cache.put(file, response);
+    })
+  );
+
+  const failed = results.filter(
+    result => result.status === "rejected"
+  );
+
+  if (failed.length) {
+    console.warn("保存失敗:", failed);
+  } else {
+    console.log("動画を含む全ファイル保存完了");
+  }
+}
+
+
 
 function loadContentById() {
 
@@ -308,27 +354,34 @@ function loadContentById() {
         `${id}.png`;
 
     document.querySelectorAll(".stamp-image").forEach(stamp => {
-    stamp.src = "org.png";
+    stamp.src = "blue.png";
 });
 }
 
 loadContentById();
 
-  function navigate(pageId) {
-    const pages = document.querySelectorAll(".page");
-    const nextPage = document.getElementById(pageId);
 
-    pages.forEach(page => {
-      page.classList.remove("active", "slide-in");
-    });
+function navigate(pageId) {
 
-    nextPage.classList.add("active");
+  const pages = document.querySelectorAll(".page");
+  const nextPage = document.getElementById(pageId);
 
-    // TOPからプロフィール遷移時のみスライド
-    if (pageId !== "top") {
-      nextPage.classList.add("slide-in");
-    }
+  if (!nextPage) return;
+
+  pages.forEach(page => {
+    page.classList.remove("active", "slide-in");
+  });
+
+  nextPage.classList.add("active");
+
+  if (pageId !== "top") {
+    nextPage.classList.add("slide-in");
   }
+
+  // 現在の画面を保存
+  sessionStorage.setItem("savedPage", pageId);
+}
+
 
     function setAppHeight() {
     document.documentElement.style.setProperty(
@@ -375,6 +428,39 @@ document.querySelectorAll('#profile1, #profile2').forEach(page => {
   window.addEventListener("load", setAppHeight);
   window.addEventListener("resize", setAppHeight);
   window.addEventListener("orientationchange", setAppHeight);
+
+  
+window.addEventListener("load", async () => {
+
+  // Service Worker登録
+  if ("serviceWorker" in navigator) {
+    try {
+      await navigator.serviceWorker.register("./sw.js");
+      await navigator.serviceWorker.ready;
+    } catch (e) {
+      console.error("SW registration failed", e);
+    }
+  }
+
+  // 保存されたIDとページを取得
+  const savedId = sessionStorage.getItem("savedId");
+  const savedPage = sessionStorage.getItem("savedPage");
+
+  if (!savedId) return;
+
+  // URLにIDを復元
+  const url = new URL(window.location.href);
+  url.searchParams.set("id", savedId);
+  window.history.replaceState({}, "", url);
+
+  // コンテンツを読み込む
+  loadContentById();
+
+  // 最後に表示していた画面へ戻る
+  navigate(savedPage || "top");
+
+});
+
 </script>
 </body>
 </html>
